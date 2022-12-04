@@ -5,6 +5,7 @@ import re
 import matplotlib.pyplot as plt
 from matplotlib.ticker import IndexLocator
 from prettytable import PrettyTable
+import doctest
 
 formatted_russian_columns = {
     "name": "Название",
@@ -72,35 +73,92 @@ currencies_exchanges = {
 }
 
 class DataSet:
+    """
+    Класс для преобразования данных CSV-файла в список обьектов Vacancy
+
+    Attributes:
+        file_name (str): Имя CSV-файла
+        vacancies_objects (object): Список вакансий-объектов
+    """
     def __init__(self, file_name):
+        """
+        Инициализирует внутреннее состояние обьекта в соответствии с переданным именем файла
+        Args:
+            file_name (str): Имя CSV-файла
+        """
         self.__file_name = file_name
         self.__vacancies_objects = DataSet.__csv_reader(file_name)
 
     @property
     def file_name(self):
+        """
+        Геттер для получения имени файла
+
+        Returns:
+            str: Имя CSV-файла
+        """
         return self.__file_name
 
     @property
     def vacancies_objects(self):
+        """
+        Геттер для получения списка вакансий-обьектов
+        Returns:
+            list: Список вакансий-объектов
+        """
         return self.__vacancies_objects
 
     @staticmethod
+    def __get_filtered_vacancy_info(input, columns):
+        """
+        Очищает поданную на вход информацию о вакансии от HTML-тегов
+        Args:
+            input (list) - Информация о вакансии, которую необходимо очистить от HTML-тегов
+            columns (list) - Названия столбцов, необходимые для правильной обработки
+        Returns:
+            list: Список очищенных от HTML-тегов строк
+        """
+        return [DataSet.__remove_html(input[i], columns[i]) for i in range(len(input))]
+
+    @staticmethod
     def __remove_html(input, column_name):
+        """
+        Очищает поданную на вход строку от HTML тегов
+        Args:
+            input (str): Строка, которую нужно очистить от тегов
+            column_name (str): Название столбца, необходимое для правильной обработки строки
+        Returns:
+            str: Очищенная от HTML-тегов строка
+        """
         if column_name == "key_skills":
             return "\n".join(re.sub(r"<[^>]+>", "", input).splitlines())
         else:
             return " ".join(re.sub(r"<[^>]+>", "", input).split())
 
     @staticmethod
-    def __get_filtered_vacancy_info(input, columns):
-        return [DataSet.__remove_html(input[i], columns[i]) for i in range(len(input))]
-
-    @staticmethod
     def __get_formatted_number(input):
+        """
+        Разделяет поданное на вход число по разрядам
+
+        Args:
+            input (float): число с плавающей точкой
+
+        Returns:
+            str: Разделенное по разрядам число
+        """
         return '{0:,}'.format(int(input)).replace(',', ' ')
 
     @staticmethod
     def __formatter(row):
+        """
+        Форматирует поданную на вход информацию о вакансии
+
+        Args:
+            row (dict): Словарь с информацией о вакансии, которую необходимо обработать
+
+        Returns:
+            dict: Обработанная информация о вакансии
+        """
         formatted_vacancy_data = dict()
         for key, value in formatted_russian_columns.items():
             if key == "salary_description":
@@ -116,6 +174,11 @@ class DataSet:
 
     @staticmethod
     def __csv_reader(file_name):
+        """
+        Считывает данные из CSV-файла
+        :param file_name: Имя CSV-файла
+        :return: Считанные из CSV-файла данные
+        """
         reader = csv.reader(open(file_name, encoding="utf_8_sig"))
         columns = []
         try:
@@ -123,7 +186,6 @@ class DataSet:
         except StopIteration:
             print("Пустой файл")
             exit()
-        #
         data = [DataSet.__formatter(dict(zip(columns, DataSet.__get_filtered_vacancy_info(row, columns)))) for row in reader if len(row) == len(columns) and row.count("") == 0]
         if len(data) == 0:
             print("Нет данных")
@@ -132,16 +194,30 @@ class DataSet:
 
 
 class InputConnect:
+    """
+    Класс для хранения введенной пользователем информации и результата ее обработки
+    """
     def __init__(self):
+        """
+        Инициализирует внутреннее состояние объекта в соответствии с переданными параметрами
+        """
         self.__input = InputConnect.__get_user_input()
         self.__parsed_input = self.__get_parsed_input(self.__input)
 
     @property
     def parsed_input(self):
+        """
+        Getter для получения обработанной информации, которую ввел пользователь
+        :return:
+        """
         return self.__parsed_input
 
     @staticmethod
     def __get_user_input():
+        """
+        Считывает информацию, введенную в консоль пользователем
+        :return: Считанная информация, введенная пользователем
+        """
         rows = [
             "Введите название файла",
             "Введите параметр фильтрации",
@@ -154,6 +230,11 @@ class InputConnect:
 
     @staticmethod
     def __get_parsed_input(raw_input):
+        """
+        Обрабатывает введенную в консоль пользователем информацию
+        :param raw_input: Введенные пользователем "грязные" данные
+        :return: Обработанные данные
+        """
         parsed_input = {
             "Название файла": raw_input[0],
             "Параметр фильтрации": InputConnect.__parse_filter_criteria(raw_input[1]),
@@ -166,6 +247,11 @@ class InputConnect:
 
     @staticmethod
     def __parse_vacancies_range(input):
+        """
+        Обрабатывает данные о диапазоне номеров вакансий в таблице
+        :param input: "Грязные" данные о диапазоне
+        :return: Обработанные данные о диапазоне
+        """
         splitted_input = list(map(int, input.split()))
         splitted_input_len = len(splitted_input)
         if splitted_input_len == 2:
@@ -176,6 +262,11 @@ class InputConnect:
 
     @staticmethod
     def __parse_to_print_columns(input):
+        """
+        Обрабатывает данные о столбцах в таблице, которые нужно напечатать
+        :param input: "Грязные" данные о столбцах
+        :return: Обработанные данные о столбцах
+        """
         to_print_columns = input.strip().split(", ")
         if to_print_columns[0] == "":
             return list(formatted_russian_columns.values())
@@ -183,6 +274,13 @@ class InputConnect:
 
     @staticmethod
     def __parse_filter_criteria(input):
+        """
+        Обрабатывает данные о критерии фильтрации
+        Args:
+            input (str): "Грязные" данные о критерии фильтрации
+        Returns:
+            list: Обработанные данные о критерии фильтрации
+        """
         if input.strip() == "":
             return []
         if ":" not in input:
@@ -194,11 +292,18 @@ class InputConnect:
             print("Параметр поиска некорректен")
             exit()
         if column_name == "Навыки":
-            splitted_input[1] = splitted_input[1].split(", ")
+            splitted_input = splitted_input[1].split(", ")
         return [splitted_input[0], splitted_input[1]]
 
     @staticmethod
     def __parse_sort_criteria(input):
+        """
+        Обрабатывает данные о критерии сортировки
+        Args:
+            input (str): "Грязные" данные о критерии сортировки
+        Returns:
+            str: Обработанные данные о критерии сортировки
+        """
         if input not in formatted_russian_columns.values() and input.strip() != "":
             print("Параметр сортировки некорректен")
             exit()
@@ -207,6 +312,13 @@ class InputConnect:
 
     @staticmethod
     def __parse_sort_order(input):
+        """
+        Обрабатывает данные о порядке сортировки
+        Args:
+            input (str): "Грязные" данные о порядке сортировки
+        Returns:
+            boolean: True, если порядок сортировки обратный, False, если прямой
+        """
         if input not in ["Да", "Нет", ""]:
             print("Порядок сортировки задан некорректно")
             exit()
@@ -214,12 +326,28 @@ class InputConnect:
 
     @staticmethod
     def __make_string_length_limit(input):
+        """
+        Обрезает введенную строку длиной > 100 символов до длины 100 или возвращает исходную, если длина < 100
+        Args:
+            input (str): Исходная строка
+        Returns:
+            str: Обработанная строка
+        """
         if len(input) > 100:
             return f"{input[:100]}..."
         return input
 
     @staticmethod
     def __get_filtered_vacancies(vacancies_info, criteria):
+        """
+        Фильтрует поданные на вход вакансии в соответствии с критерием
+        Args:
+        vacancies_info (list): Список данных о вакансиях, который нужно обработать
+        criteria (str): Строка, содержащая критерий фильтрации
+
+        Returns:
+             list: Отфильтрованные вакансии
+        """
         if len(criteria) == 0:
             return vacancies_info
         filtered_vacancies_info = []
@@ -234,6 +362,15 @@ class InputConnect:
 
     @staticmethod
     def __compare_vacancy_info_with_criteria(vacancy_info, criteria):
+        """
+        Проверяет, удовлетворяет ли поданная на вход вакансия критерию фильтрации
+
+        Args:
+            vacancy_info (dict): Словарь с информацией о вакансии
+            criteria (str): Критерий фильтрации
+        Returns:
+            boolean: True, если вакансия удовлетворяет критерию, False, если нет.
+        """
         if criteria[0] == "Навыки":
             skills = vacancy_info[criteria[0]].split("\n")
             for skill in criteria[1]:
@@ -254,17 +391,39 @@ class InputConnect:
 
     @staticmethod
     def __get_rouble_medium_salary(input):
+        """
+        Возвращает среднюю зарплату вакансии в рублях
+        Args:
+            input (str): Строка, содержащая нижний и верхний пороги зарплаты в любой валюте
+        Returns:
+            float: Средняя зарплата вакансии в рублях
+        """
         temp = re.sub('(?<=\d) (?=\d)', "", input["Оклад"]).split(" ", 3)
         salary_currency = re.search('\((.*?)\)', temp[3]).group(1)
         return currencies_exchanges[salary_currency] * (float(temp[0]) + float(temp[2])) / 2
 
     @staticmethod
     def __get_vacancy_skills_count(input):
+        """
+        Возвращает количество навыков данной вакансии
+        Args:
+            input (dict): Информация о вакансии
+        Returns:
+            int: Количество навыков данной вакансии
+        """
         temp = input["Навыки"]
         return len(temp.split("\n"))
 
     @staticmethod
     def __get_lambda(input):
+        """
+        Возвращает подходящую лямбда-функцию для сортировки
+        Args:
+            input (str): Критерий сортировки
+        Returns:
+            lambda: Лямбда-функция для сортировки
+        """
+
         if input == "Оклад":
             return lambda d: InputConnect.__get_rouble_medium_salary(d)
         elif input == "Навыки":
@@ -277,6 +436,14 @@ class InputConnect:
 
     @staticmethod
     def __get_sorted_vacancies(vacancies_info, sort_criteria, reversed):
+        """
+        Сортирует вакансии по критерию
+        Args:
+            vacancies_info (list): Список вакансии
+
+        Returns:
+            list: отсортированный по указанному критерию список вакансий
+        """
         if len(sort_criteria) == 0:
             return vacancies_info
         proper_lambda = InputConnect.__get_lambda(sort_criteria)
@@ -284,10 +451,24 @@ class InputConnect:
 
     @staticmethod
     def __get_normalized_date(input):
+        """
+        Преобразует объект datetime в строку вида "Число.Месяц.Год"
+        Args:
+            input (datetime): Объект, который нужно преобразовать в строку
+        Returns:
+            str: Преобразованная в строку вида "Число.Месяц.Год" дата
+        """
         return f"{input[8:10]}.{input[5:7]}.{input[:4]}"
 
     @staticmethod
     def __get_date_normalized_vacancies(vacancies_info):
+        """
+        Заменяет в вакансиях дату, представленную объектом datetime, на строку вида "Число.Месяц.Год"
+        Args:
+            vacancies_info (list): Список вакансий с датой публикации вида datetime
+        Returns:
+            list: Список вакансий с замененной на строку вида "Число.Месяц.Год" датой.
+        """
         normalized_date_vacancies = []
         for i in range(len(vacancies_info)):
             current_vacancy = vacancies_info[i]
@@ -297,14 +478,24 @@ class InputConnect:
 
 
     def __prepare_vacancies_info(self, vacancies_info):
+        """
+        Обрабатывает поданный на вход список вакансий: фильтрует и сортирует по поданным на вход критериям фильтрации и сортировки, преобразует дату
+        """
         filtered_vacancies = InputConnect.__get_filtered_vacancies(vacancies_info, self.parsed_input["Параметр фильтрации"])
         sorted_vacancies = InputConnect.__get_sorted_vacancies(filtered_vacancies, self.parsed_input["Параметр сортировки"], self.parsed_input["Порядок сортировки"])
         normalized_date_sorted_vacancies = InputConnect.__get_date_normalized_vacancies(sorted_vacancies)
         return normalized_date_sorted_vacancies
 
 
-    def __get_filled_table(self, raw_vacancies_info):
-        vacancies_info = self.__prepare_vacancies_info(raw_vacancies_info)
+    def __get_filled_table(self, vacancies_info):
+        """
+        Заполняет таблицу, представленную объектом PrettyTable, данными, поданными на вход.
+        Args:
+            vacancies_info (list): Список вакансий, которыми будет заполнена таблица.
+        Returns:
+            PrettyTable: таблица, заполненная данными.
+        """
+        vacancies_info = self.__prepare_vacancies_info(vacancies_info)
         table = PrettyTable(align="l", hrules=1)
         field_names = []
         field_names.append("№")
@@ -317,6 +508,13 @@ class InputConnect:
         return table
 
     def print_table(self, vacancies_info):
+        """
+        Печатает в консоль таблицу, которая будет заполненая поданными на вход данными
+        Args:
+            vacancies_info (list): Данные, которыми нужно заполнить таблицу для печати
+        Returns:
+            None
+        """
         table = self.__get_filled_table(vacancies_info)
         vacancies_range = self.parsed_input["Диапазон вывода"]
         vacancies_count = len(vacancies_info)
@@ -327,8 +525,18 @@ class InputConnect:
 
 
 class FileHandler:
+    """
+    Класс для хранения данных о пользовательском вводе, а также для обработки данных из CSV-файла
+    """
     @staticmethod
     def get_user_input():
+        """
+        Отдает данные, введенные пользователем
+        Args:
+             None
+        Returns:
+            list: Пользовательский ввод
+        """
         rows = [
             "Введите название файла",
             "Введите название профессии"
@@ -337,13 +545,35 @@ class FileHandler:
 
     @staticmethod
     def csv_reader(file_name):
+        """
+        Обрабатывает данные из CSV-файла
+        Args:
+            file_name (str): имя CSV-файла
+        Returns:
+            list: Список обьектов-вакансий, полученных при обработке CSV-файла
+        """
         reader = csv.reader(open(file_name, encoding="utf_8_sig"))
         data = [Vacancy(row) for row in list(filter(lambda x: "" not in x, reader))[1:]]
         return data
 
 
 class Vacancy:
+    """
+    Класс для хранения данных об отдельной вакансии
+
+    Attributes:
+        __currentcies_exchanges (dict): Словарь с курсами валют, соответствующих разным странам
+        name (str): Название вакансии
+        salary (int): Средняя зарплата вакансии
+        city (str): Город вакансии
+        year (int): Год публикации вакансии
+    """
     def __init__(self, vacancy_info):
+        """
+        Инициализирует внутреннее состояние обьекта в соответствии с переданными данными
+        Args:
+            vacancy_info (dict): список с данными о вакансии
+        """
         self.__currencies_exchanges = {
             "AZN": 35.68,
             "BYR": 23.91,
@@ -366,7 +596,21 @@ class Vacancy:
         self.year = int(datetime.strptime(vacancy_info[5], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y'))
 
 class Statistics:
+    """
+    Класс предназначенный, для обработки статистических данных и последующей их печати
+
+    Attributes:
+        years_salaries (dict): Словарь с динамикой уровня зарплат по годам
+        job_years_salaries (dict): Словарь с динамикой уровня зарплат по годам для выбранной профессии
+        years_vacancies_counts (dict): Словарь с динамикой количества вакансий по годам
+        job_years_vacancies (dict): Словарь с динамикой количества вакансий по годам для выбранной профессии
+        cities_salaries (dict): Словарь с динамикой уровня зарплат в порядке убывания по городам
+        cities_vacancies_ratios (dict): Словарь с долями вакансий в порядке убывания по городам
+    """
     def __init__(self):
+        """
+        Инициализирует внутреннее состояние обьекта в соответствии с переданными параметрами
+        """
         self.years_salaries = None
         self.years_vacancies_counts = None
         self.job_years_salaries = None
@@ -375,9 +619,21 @@ class Statistics:
         self.cities_vacancies_ratios = None
 
     def __get_empty_dict_with_keys(self, keys):
+        """
+        Возвращает словарь с нулевыми значениями и ключами, поданными на вход
+
+        Args:
+            keys (set or list): ключи, с которыми нужно вернуть словарь
+
+        Returns:
+            dict: словарь с нулевыми значениями и ключами, поданными на вход
+        """
         return {x: y for x in keys for y in [0]}
 
     def prepare(self, vacancies_info, name):
+        """
+        Подготавливает статистические данные из списка информации о вакансиях
+        """
         years = set()
         cities = list()
         for vacancy_info in vacancies_info:
@@ -436,6 +692,9 @@ class Statistics:
             self.cities_vacancies_ratios.update({"Другие": round(1 - sum(self.cities_vacancies_ratios.values()), 4)})
 
     def print(self):
+        """
+        Печатает статистические данные в консоль
+        """
         print(f"Динамика уровня зарплат по годам: {self.years_salaries}")
         print(f"Динамика количества вакансий по годам: {self.years_vacancies_counts}")
         print(f"Динамика уровня зарплат по годам для выбранной профессии: {self.job_years_salaries}")
@@ -444,6 +703,17 @@ class Statistics:
         print(f"Доля вакансий по городам (в порядке убывания): {self.cities_vacancies_ratios}")
 
     def get_prepared_statistics(self):
+        """
+        Возвращает статистические данные, подсчитанные внутри класса
+
+        Returns:
+            dict: Словарь с динамикой уровня зарплат по годам
+            dict: Словарь с динамикой уровня зарплат по годам для выбранной профессии
+            dict: Словарь с динамикой количества вакансий по годам
+            dict: Словарь с динамикой количества вакансий по годам для выбранной профессии
+            dict: Словарь с динамикой уровня зарплат в порядке убывания по городам
+            dict: Словарь с долями вакансий в порядке убывания по городам
+        """
         return self.years_salaries, \
                self.job_years_salaries, \
                self.years_vacancies_counts, \
@@ -452,6 +722,18 @@ class Statistics:
                self.cities_vacancies_ratios
 
 class Report:
+    """
+    Класс, отвечающий за отрисовку графиков и дальнейшее сохранение их в файл формата PNG.
+
+    Attribues:
+        job_name (str): Название профессии, данные для которой необходимо вывести
+        years_salaries (dict): Словарь с динамикой уровня зарплат по годам
+        job_years_salaries (dict): Словарь с динамикой уровня зарплат по годам для выбранной профессии
+        years_vacancies_counts (dict): Словарь с динамикой количества вакансий по годам
+        job_years_vacancies (dict): Словарь с динамикой количества вакансий по годам для выбранной профессии
+        cities_salaries (dict): Словарь с динамикой уровня зарплат в порядке убывания по городам
+        cities_vacancies_ratios (dict): Словарь с долями вакансий в порядке убывания по городам
+    """
     def __init__(self,
             job_name,
             years_salaries,
@@ -461,6 +743,16 @@ class Report:
             cities_salaries,
             cities_vacancies_ratios):
 
+        """
+        Инициализирует внутреннее состояние обьекта в соответствии с переданными параметрами
+            job_name (str): Название профессии, данные для которой необходимо вывести
+            years_salaries (dict): Словарь с динамикой уровня зарплат по годам
+            job_years_salaries (dict): Словарь с динамикой уровня зарплат по годам для выбранной профессии
+            years_vacancies_counts (dict): Словарь с динамикой количества вакансий по годам
+            job_years_vacancies (dict): Словарь с динамикой количества вакансий по годам для выбранной профессии
+            cities_salaries (dict): Словарь с динамикой уровня зарплат в порядке убывания по городам
+            cities_vacancies_ratios (dict): Словарь с долями вакансий в порядке убывания по городам
+        """
         self.job_name = job_name
         self.years_salaries = years_salaries
         self.job_years_salaries = job_years_salaries
@@ -470,6 +762,9 @@ class Report:
         self.cities_vacancies_ratios = cities_vacancies_ratios
 
     def render_graph(self):
+        """
+        Отрисовывает все 4 графика
+        """
         fig, ax = plt.subplots(2, 2)
         self.__render_years_salaries_graph(ax[0, 0])
         self.__render_years_vacancies_graph(ax[0, 1])
@@ -558,4 +853,3 @@ elif functionality_choice == "Графики":
     statistics.print()
     report = Report(vacancy_name, *statistics.get_prepared_statistics())
     report.render_graph()
-
