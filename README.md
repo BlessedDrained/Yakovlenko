@@ -1,3 +1,3 @@
 Скриншоты, подтверждающие успешность прохождения unit- и doc-тестов:
-![Alt text](/main/unittests.png?raw=true "UnitTests")
-![Alt text](/main/doctests.png?raw=true "DocTests")
+![Alt text](https://github.com/BlessedDrained/Yakovlenko/blob/main/unittests.png "UnitTests")
+![Alt text](https://github.com/BlessedDrained/Yakovlenko/blob/main/doctests.png "DocTests")
