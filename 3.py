@@ -7,6 +7,7 @@ from matplotlib.ticker import IndexLocator
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
 
+
 class FileHandler:
     @staticmethod
     def get_user_input():
@@ -45,6 +46,7 @@ class Vacancy:
                 float(vacancy_info[1]) + float(vacancy_info[2])))
         self.city = vacancy_info[4]
         self.year = int(datetime.strptime(vacancy_info[5], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y'))
+
 
 class Statistics:
     def __init__(self):
@@ -132,16 +134,16 @@ class Statistics:
                self.cities_salaries, \
                self.cities_vacancies_ratios
 
+
 class Report:
     def __init__(self,
-            job_name,
-            years_salaries,
-            job_years_salaries,
-            years_vacancies_counts,
-            job_years_vacancies,
-            cities_salaries,
-            cities_vacancies_ratios):
-
+                 job_name,
+                 years_salaries,
+                 job_years_salaries,
+                 years_vacancies_counts,
+                 job_years_vacancies,
+                 cities_salaries,
+                 cities_vacancies_ratios):
         self.job_name = job_name
         self.years_salaries = years_salaries
         self.job_years_salaries = job_years_salaries
@@ -215,7 +217,8 @@ class Report:
 
     def __render_cities_vacancies_ratios_graph(self, ax):
         ax.set_title("Доля вакансий по городам")
-        reversed_cities_vacancies_ratios = dict(sorted(self.cities_vacancies_ratios.items(), key=lambda item: item[1], reverse=True))
+        reversed_cities_vacancies_ratios = dict(
+            sorted(self.cities_vacancies_ratios.items(), key=lambda item: item[1], reverse=True))
         cities = reversed_cities_vacancies_ratios.keys()
         ratios = reversed_cities_vacancies_ratios.values()
         ax.pie(ratios, labels=cities, textprops={'fontsize': 6})
@@ -225,13 +228,14 @@ class Report:
         template = env.get_template("pdf_template.html")
 
         years_headers = ["Год", "Средняя зарплата", f"Средняя зарплата - {self.job_name}", "Количество вакансий",
-                       f"Количество вакансий - {self.job_name}"]
+                         f"Количество вакансий - {self.job_name}"]
         cities_headers = ["Город", "Уровень зарплат", "Город", "Доля вакансий"]
 
         cities_vacancies_ratios = dict([(k, f"{v:.2%}") for k, v in list(self.cities_vacancies_ratios.items())[:10]])
 
         pdf_template = template.render(
-            {"job_name": self.job_name, "years_salaries": self.years_salaries, "years_vacancies_counts": self.years_vacancies_counts,
+            {"job_name": self.job_name, "years_salaries": self.years_salaries,
+             "years_vacancies_counts": self.years_vacancies_counts,
              "job_years_salaries": self.job_years_salaries,
              "job_years_vacancies": self.job_years_vacancies,
              "cities_salaries": self.cities_salaries,
@@ -242,15 +246,14 @@ class Report:
         pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": None})
 
 
-user_input = FileHandler.get_user_input()
-file_name = user_input[0]
-vacancy_name = user_input[1]
-
-vacancies_info = FileHandler.csv_reader(file_name)
-statistics = Statistics()
-statistics.prepare(vacancies_info, vacancy_name)
-statistics.print()
-
-report = Report(vacancy_name, *statistics.get_prepared_statistics())
-report.render_graph()
-report.generate_pdf()
+if __name__ == "__main__":
+    user_input = FileHandler.get_user_input()
+    file_name = user_input[0]
+    vacancy_name = user_input[1]
+    vacancies_info = FileHandler.csv_reader(file_name)
+    statistics = Statistics()
+    statistics.prepare(vacancies_info, vacancy_name)
+    statistics.print()
+    report = Report(vacancy_name, *statistics.get_prepared_statistics())
+    report.render_graph()
+    report.generate_pdf()
