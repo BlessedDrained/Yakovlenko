@@ -869,18 +869,18 @@ class Report:
 
 
 
-# functionality_choice = input("Выберите интересующую функциональность (таблица с вакансиями - 1 / статистика по вакансиям - 2): ")
-# if functionality_choice == "1":
-#     input_connect = InputConnect()
-#     dataset = DataSet(input_connect.parsed_input["Название файла"])
-#     input_connect.print_table(dataset.vacancies_objects)
-# elif functionality_choice == "2":
-#     user_input = FileHandler.get_user_input()
-#     file_name = user_input[0]
-#     vacancy_name = user_input[1]
-#     vacancies_info = FileHandler.csv_reader(file_name)
-#     statistics = Statistics()
-#     statistics.prepare(vacancies_info, vacancy_name)
-#     statistics.print()
-#     report = Report(vacancy_name, *statistics.get_prepared_statistics())
-#     report.render_graph()
+functionality_choice = input("Выберите интересующую функциональность (таблица с вакансиями - 1 / статистика по вакансиям - 2): ")
+if functionality_choice == "1":
+    input_connect = InputConnect()
+    dataset = DataSet(input_connect.parsed_input["Название файла"])
+    input_connect.print_table(dataset.vacancies_objects)
+elif functionality_choice == "2":
+    user_input = FileHandler.get_user_input()
+    file_name = user_input[0]
+    vacancy_name = user_input[1]
+    vacancies_info = FileHandler.csv_reader(file_name)
+    statistics = Statistics()
+    statistics.prepare(vacancies_info, vacancy_name)
+    statistics.print()
+    report = Report(vacancy_name, *statistics.get_prepared_statistics())
+    report.render_graph()
