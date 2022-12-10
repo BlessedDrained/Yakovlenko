@@ -96,12 +96,6 @@ def get_user_input():
 
 if __name__ == "__main__":
     user_input = get_user_input()
-
-    print("Работаем")
-    user_input = [
-        "vacancies_by_year.csv",
-        "Программист"
-    ]
     separate_csv(user_input[0])
     multiproc_result = get_multiprocess_statistics(user_input[1])
     singleproc_result = get_singleprocess_statistics(user_input[0])
