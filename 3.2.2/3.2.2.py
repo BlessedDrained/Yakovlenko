@@ -95,7 +95,7 @@ def get_user_input():
 
 
 if __name__ == "__main__":
-    #user_input = get_user_input()
+    user_input = get_user_input()
 
     print("Работаем")
     user_input = [
