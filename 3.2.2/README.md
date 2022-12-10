@@ -1,3 +1,3 @@
 Скриншоты результатов работы профилизитора для однопроцессорного и многопроцессорного вариантов соответственно:
-![alt text](../3.2.2/singleprocess_graph.png?raw=true)
-![alt text](../3.2.2/multiprocessor_graph.png?raw=true)
+![alt text](https://github.com/BlessedDrained/Yakovlenko/blob/main/3.2.2/singleprocess_graph.png)
+![alt text](https://github.com/BlessedDrained/Yakovlenko/blob/main/3.2.2/multiprocessor_graph.png)
