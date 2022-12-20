@@ -40,7 +40,5 @@ for i in range(len(to_get_currencies_exchanges_dates)):
     values = cur_filtered_df["Value"].apply(lambda x: float(x.replace(",", ".")))
     nominals = cur_filtered_df["Nominal"]
     exchanges = values / nominals
-    result.loc[i] = [date] + [x for x in exchanges]
+    result.loc[i] = [date.replace("/", "-")] + [x for x in exchanges]
 
-
-print(result.head(10))
