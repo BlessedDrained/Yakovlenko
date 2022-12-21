@@ -17,6 +17,7 @@ proper_currencies = [x for x in df
     .index
     .values if x != "RUR"]
 
+print(proper_currencies)
 result = pd.DataFrame(columns=["date"] + proper_currencies)
 
 to_get_currencies_exchanges_dates = [
@@ -41,4 +42,6 @@ for i in range(len(to_get_currencies_exchanges_dates)):
     nominals = cur_filtered_df["Nominal"]
     exchanges = values / nominals
     result.loc[i] = [date.replace("/", "-")] + [x for x in exchanges]
+    break
 
+result = result.set_index(result.loc[:, "date"])
