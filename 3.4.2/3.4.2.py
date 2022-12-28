@@ -193,6 +193,11 @@ if __name__ == "__main__":
 
     output_data = get_multiprocess_statistics(job_name, df_dates)
 
+    print(f"Динамика уровня зарплат по годам: {output_data[0]}")
+    print(f"Динамика количества вакансий по годам: {output_data[2]}")
+    print(f"Динамика уровня зарплат по годам для выбранной профессии: {output_data[1]}")
+    print(f"Динамика количества вакансий по годам для выбранной профессии: {output_data[3]}")
+
     report = Report(job_name, output_data[0], output_data[2], output_data[1], output_data[3])
     report.render_graph()
     report.generate_pdf()
