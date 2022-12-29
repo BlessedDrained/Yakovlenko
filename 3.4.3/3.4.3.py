@@ -38,16 +38,18 @@ def handle_salary(dates_currencies, date, salary_from, salary_to, salary_currenc
 """
 Метод для получения статистики за отдельно взятый год
 """
-def get_year_statistics(file_name, job_name, dates_currencies):
+def get_year_statistics(file_name, job_name, dates):
     year = file_name[-8:-4]
     df = pd.read_csv(file_name)
     df["salary"] = df.apply(lambda row:
-                            handle_salary(dates_currencies,
+                            handle_salary(dates,
                                           row["published_at"][:7].split("-"),
                                           row["salary_from"],
                                           row["salary_to"],
                                           row["salary_currency"]),
                             axis=1)
+
+    df = df[df["salary"].notnull()]
     salaries_year = int(df["salary"].mean())
     vacancies_count_year = df.shape[0]
     job_dataframe = df[df["name"].str.contains(job_name)]
@@ -83,7 +85,7 @@ def get_singleprocess_statistics(file_name, job_name, area_name, dates_currencie
                                           row["salary_to"],
                                           row["salary_currency"]),
                             axis=1)
-
+    df = df[df["salary"].notnull()]
     df["count"] = df.groupby("area_name")["area_name"].transform("count")
     total_vacancies_count = df.shape[0]
     cities_salaries = {}
