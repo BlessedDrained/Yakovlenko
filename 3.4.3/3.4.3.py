@@ -159,20 +159,22 @@ def get_multiprocess_statistics(job_name, dates_currencies):
 """
 class Report:
     def __init__(self,
-            job_name,
-            years_salaries,
-            job_years_salaries,
-            years_vacancies_counts,
-            job_years_vacancies,
-            cities_salaries,
-            cities_vacancies_ratios
+                 job_name,
+                 area_name,
+                 years_salaries,
+                 job_years_salaries,
+                 years_vacancies_counts,
+                 job_years_vacancies_count,
+                 cities_salaries,
+                 cities_vacancies_ratios
                  ):
 
         self.job_name = job_name
+        self.area_name = area_name
         self.years_salaries = years_salaries
         self.job_years_salaries = job_years_salaries
         self.years_vacancies_counts = years_vacancies_counts
-        self.job_years_vacancies = job_years_vacancies
+        self.job_years_vacancies = job_years_vacancies_count
         self.cities_salaries = cities_salaries
         self.cities_vacancies_ratios = cities_vacancies_ratios
 
@@ -272,13 +274,12 @@ class Report:
         env = Environment(loader=FileSystemLoader("."))
         template = env.get_template("pdf_template.html")
 
-        years_headers = ["Год", "Средняя зарплата", f"Средняя зарплата - {self.job_name}", "Количество вакансий",
-                       f"Количество вакансий - {self.job_name}"]
+        years_headers = ["Год",
+                         f"Средняя зарплата - {self.job_name}, регион - {self.area_name}",
+                         f"Количество вакансий - {self.job_name}, регион - {self.area_name}"]
 
         pdf_template = template.render(
             {"job_name": self.job_name,
-             "years_salaries": self.years_salaries,
-             "years_vacancies_counts": self.years_vacancies_counts,
              "job_years_salaries": self.job_years_salaries,
              "job_years_vacancies": self.job_years_vacancies,
              "years_headers": years_headers})
@@ -297,6 +298,7 @@ if __name__ == "__main__":
     output_multiprocess_data = get_multiprocess_statistics(job_name, df_dates_currencies)
     output_singleprocess_data = get_singleprocess_statistics(file_name, job_name, area_name, df_dates_currencies)
     report = Report(job_name,
+                    area_name,
                     output_multiprocess_data[0],
                     output_multiprocess_data[2],
                     output_multiprocess_data[1],
