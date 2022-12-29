@@ -285,9 +285,10 @@ class Report:
 
 
 if __name__ == "__main__":
-    file_name = "vacancies_dif_currencies.csv"
-    job_name = "Программист"
-    area_name = "Москва"
+    file_name = input("Введите название файла: ")
+    job_name = input("Введите название профессии: ")
+    area_name = input("Введите название региона: ")
+
     separate_csv(file_name)
     df_dates_currencies = pd.read_csv("cb_currencies.csv")
 
