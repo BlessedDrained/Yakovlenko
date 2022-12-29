@@ -5,7 +5,6 @@ pd.set_option("expand_frame_repr", False)
 
 if __name__ == "__main__":
     con = sqlite3.connect("vacancies.db")
-    cur = con.cursor()
     vacancies_count = pd.read_sql("select count(*) from vacancies", con).to_dict()["count(*)"][0]
 
     # Динамика уровня зарплат по годам
