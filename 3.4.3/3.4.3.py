@@ -50,12 +50,12 @@ def get_year_statistics(file_name, job_name, dates):
                             axis=1)
 
     df = df[df["salary"].notnull()]
-    salaries_year = int(df["salary"].mean())
-    vacancies_count_year = df.shape[0]
+    year_salaries = int(df["salary"].mean())
+    year_vacancies_count = df.shape[0]
     job_dataframe = df[df["name"].str.contains(job_name)]
-    job_salary_year = int(job_dataframe["salary"].mean())
-    job_vacancies_count_year = job_dataframe.shape[0]
-    return [year, salaries_year, vacancies_count_year, job_salary_year, job_vacancies_count_year]
+    year_job_salaries = int(job_dataframe["salary"].mean())
+    year_job_vacancies_count = job_dataframe.shape[0]
+    return [year, year_salaries, year_vacancies_count, year_job_salaries, year_job_vacancies_count]
 
 """
 Метод для разделения исходного файла на более мелкие по годам
@@ -89,9 +89,9 @@ def get_singleprocess_statistics(file_name, job_name, area_name, dates_currencie
     df["count"] = df.groupby("area_name")["area_name"].transform("count")
     total_vacancies_count = df.shape[0]
     cities_salaries = {}
-    vacancies_ratios_cities = {}
-    job_salaries_years = {}
-    job_vacancies_count_years = {}
+    cities_vacancies_ratios = {}
+    years_job_salaries = {}
+    years_job_vacancies_count = {}
 
 
     # Уровень зарплат по городам (в порядке убывания) - только первые 10 значений
@@ -103,7 +103,7 @@ def get_singleprocess_statistics(file_name, job_name, area_name, dates_currencie
     for city in cities:
         city_df = proper_cities_df[proper_cities_df["area_name"] == city]
         cities_salaries[city] = int(city_df["salary"].mean())
-        vacancies_ratios_cities[city] = round(city_df.shape[0] / total_vacancies_count, 4)
+        cities_vacancies_ratios[city] = round(city_df.shape[0] / total_vacancies_count, 4)
 
     # Динамика уровня зарплат по годам для выбранной профессии и региона
     # Динамика количества вакансий по годам для выбранной профессии и региона
@@ -111,26 +111,26 @@ def get_singleprocess_statistics(file_name, job_name, area_name, dates_currencie
     for year in years:
         year_df = job_df[(job_df["year"] == year) & (job_df["area_name"] == area_name)]
         if year_df.shape[0] > 0:
-            job_salaries_years[year] = int(year_df["salary"].mean())
-            job_vacancies_count_years[year] = year_df.shape[0]
+            years_job_salaries[year] = int(year_df["salary"].mean())
+            years_job_vacancies_count[year] = year_df.shape[0]
 
     slice_end = 10 if len(cities_salaries.items()) > 10 else len(cities_salaries.items())
     cities_salaries = dict(
         sorted(cities_salaries.items(), key=lambda x: x[1], reverse=True)[:slice_end])
-    slice_end = 10 if len(vacancies_ratios_cities.items()) > 10 else len(vacancies_ratios_cities.items())
+    slice_end = 10 if len(cities_vacancies_ratios.items()) > 10 else len(cities_vacancies_ratios.items())
 
-    temp_len = len(vacancies_ratios_cities)
-    vacancies_ratios_cities = dict(
-        sorted(vacancies_ratios_cities.items(), key=lambda x: x[1], reverse=True)[:slice_end])
+    temp_len = len(cities_vacancies_ratios)
+    cities_vacancies_ratios = dict(
+        sorted(cities_vacancies_ratios.items(), key=lambda x: x[1], reverse=True)[:slice_end])
 
     if temp_len > 10:
-        vacancies_ratios_cities.update({"Другие": round(1 - sum(vacancies_ratios_cities.values()), 4)})
+        cities_vacancies_ratios.update({"Другие": round(1 - sum(cities_vacancies_ratios.values()), 4)})
 
     return [
         cities_salaries,
-        vacancies_ratios_cities,
-        job_salaries_years,
-        job_vacancies_count_years,
+        cities_vacancies_ratios,
+        years_job_salaries,
+        years_job_vacancies_count,
     ]
 
 
@@ -162,11 +162,13 @@ class Report:
                  job_name,
                  area_name,
                  years_salaries,
-                 job_years_salaries,
                  years_vacancies_counts,
-                 job_years_vacancies_count,
                  cities_salaries,
-                 cities_vacancies_ratios
+                 job_years_salaries,
+                 job_years_vacancies_count,
+                 cities_vacancies_ratios,
+                 years_job_city_salaries,
+                 years_job_city_vacancies_count
                  ):
 
         self.job_name = job_name
@@ -177,6 +179,8 @@ class Report:
         self.job_years_vacancies = job_years_vacancies_count
         self.cities_salaries = cities_salaries
         self.cities_vacancies_ratios = cities_vacancies_ratios
+        self.years_job_city_salaries = years_job_city_salaries
+        self.years_job_city_vacancies_count = years_job_city_vacancies_count
 
     """
     Метод, отвечающий за отрисовку всего полотна с графиками
@@ -282,6 +286,8 @@ class Report:
             {"job_name": self.job_name,
              "job_years_salaries": self.job_years_salaries,
              "job_years_vacancies": self.job_years_vacancies,
+             "years_job_city_salaries": self.years_job_city_salaries,
+             "years_job_city_vacancies_count": self.years_job_city_vacancies_count,
              "years_headers": years_headers})
         config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
         pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": None})
@@ -297,14 +303,7 @@ if __name__ == "__main__":
 
     output_multiprocess_data = get_multiprocess_statistics(job_name, df_dates_currencies)
     output_singleprocess_data = get_singleprocess_statistics(file_name, job_name, area_name, df_dates_currencies)
-    report = Report(job_name,
-                    area_name,
-                    output_multiprocess_data[0],
-                    output_multiprocess_data[2],
-                    output_multiprocess_data[1],
-                    output_multiprocess_data[3],
-                    output_singleprocess_data[0],
-                    output_singleprocess_data[1])
+    report = Report(job_name, area_name, output_multiprocess_data[0], output_multiprocess_data[1], output_singleprocess_data[0], output_multiprocess_data[2], output_multiprocess_data[3], output_singleprocess_data[1], output_singleprocess_data[2], output_singleprocess_data[3])
     report.render_graph()
     report.generate_pdf()
 

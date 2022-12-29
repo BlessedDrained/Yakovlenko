@@ -38,11 +38,11 @@
         <th>{{years_headers[1]}}</th>
         <th>{{years_headers[2]}}</th>
     </tr>
-    {% for key, value in years_salaries.items() %}
+    {% for key, value in years_job_city_salaries.items() %}
     <tr>
         <td>{{key}}</td>
         <td>{{value}}</td>
-        <td>{{job_years_salaries[key]}}</td>
+        <td>{{years_job_city_vacancies_count[key]}}</td>
     </tr>
     {% endfor %}
 </table>
