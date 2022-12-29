@@ -47,6 +47,8 @@ def get_year_statistics(file_name, job_name, dates):
                                           row["salary_to"],
                                           row["salary_currency"]),
                             axis=1)
+
+    df = df[df["salary"].notnull()]
     salaries_year = int(df["salary"].mean())
     vacancies_count_year = df.shape[0]
     job_dataframe = df[df["name"].str.contains(job_name)]
