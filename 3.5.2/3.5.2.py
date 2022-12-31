@@ -49,6 +49,9 @@ df["salary"] = df.apply(lambda row:
                                       cur),
                         axis=1)
 
+# Отсеиваем строки с пустой зарплатой
+df = df[df["salary"].notnull()]
+
 # Приведение формата даты к указанному в задании
 df["published_at"] = df.apply(lambda row: row["published_at"][0:7], axis=1)
 
@@ -59,5 +62,5 @@ df = df.drop(["salary_from", "salary_to", "salary_currency"], axis=1)
 df = df.loc[:, ["name", "salary", "area_name", "published_at"]]
 
 # Работа с базой данных
-con = sqlite3.connect("vacancies.db")
+con = sqlite3.connect("../3.5.3/vacancies.db")
 df.to_sql("vacancies", con=con, if_exists="replace", index=False)
